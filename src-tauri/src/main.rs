@@ -5,7 +5,7 @@ use crate::utils::set_window_shadow;
 mod utils;
 
 #[tauri::command]
-fn set_window_always_on_top(data: bool, window: tauri::Window){
+fn set_window_always_on_top(data: bool, window: tauri::Window) {
     let _ = window.set_always_on_top(data);
 }
 

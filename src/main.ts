@@ -3,10 +3,26 @@
 import { invoke } from "@tauri-apps/api/tauri";
 import { appWindow } from '@tauri-apps/api/window'
 
+
+// 全局变量声明区域
+
+let roll_request_id: number;
+let nameplate_doms: Array<HTMLElement>;
+let btn: HTMLButtonElement;
+let highlight_elem: HTMLElement;
+let deltaY = 0;
+const nameplate_height = 120;
+const students_name_list = ["刘一","陈二","张三","李四","王五","赵六","孙七","周八","吴九","郑十"];
+// resistance为阻力状态: false为无阻力自由旋转，true为有阻力减速或停止
+let resistance: boolean = true;
+let studentNum = 0;
+let velocity: number;
+let currVelocityPercent: number;
+let lastFrame: number;
 // 基本窗口UI框架
 let always_on_top = false;
 
-async function topped(btn: HTMLElement) {
+async function topwindows(btn: HTMLElement) {
     always_on_top = !always_on_top;
     if (always_on_top) {
         btn.innerHTML = '<svg width="17" height="16" viewBox="0 0 17 16" fill="none" xmlns="http://www.w3.org/2000/svg" id="topped-icon"><path d="M8.19092 14.5C8.56492 14.5 10.0269 13.432 11.1919 12.107C12.7449 10.342 13.6909 8.372 13.6909 6.5C13.6909 3.537 11.2559 1.5 8.19092 1.5C5.12592 1.5 2.69092 3.537 2.69092 6.5C2.69092 8.38 3.63692 10.35 5.18992 12.113C6.35392 13.435 7.81592 14.5 8.19092 14.5ZM8.19092 7.7C8.45613 7.7 8.71049 7.59464 8.89802 7.40711C9.08556 7.21957 9.19092 6.96522 9.19092 6.7C9.19092 6.43478 9.08556 6.18043 8.89802 5.99289C8.71049 5.80536 8.45613 5.7 8.19092 5.7C7.9257 5.7 7.67135 5.80536 7.48381 5.99289C7.29628 6.18043 7.19092 6.43478 7.19092 6.7C7.19092 6.96522 7.29628 7.21957 7.48381 7.40711C7.67135 7.59464 7.9257 7.7 8.19092 7.7ZM8.19092 9.9C7.34223 9.9 6.52829 9.56286 5.92818 8.96274C5.32806 8.36263 4.99092 7.54869 4.99092 6.7C4.99092 5.85131 5.32806 5.03737 5.92818 4.43726C6.52829 3.83714 7.34223 3.5 8.19092 3.5C9.03961 3.5 9.85354 3.83714 10.4537 4.43726C11.0538 5.03737 11.3909 5.85131 11.3909 6.7C11.3909 7.54869 11.0538 8.36263 10.4537 8.96274C9.85354 9.56286 9.03961 9.9 8.19092 9.9Z" fill="#000"/></svg>'
@@ -21,30 +37,7 @@ function disableContextMenu() {
     document.addEventListener('contextmenu', (event) => {
         event.preventDefault();
     });
-
-    /* 禁止F12开发者工具
-    document.addEventListener('keydown', (event) => {
-        if (event.key === 'F12') {
-            event.preventDefault();
-        }
-    });
-    */
 }
-
-// 全局变量声明区域
-
-let roll_request_id: number;
-let nameplate_doms: Array<HTMLElement>;
-let btn: HTMLButtonElement;
-let highlight_elem: HTMLElement;
-let deltaY = 0;
-const nameplate_height = 130;
-const students_name_list = ["刘一","陈二","张三","李四","王五","赵六","孙七","周八","吴九","郑十"]
-// resistance为阻力状态: false为无阻力自由旋转，true为有阻力减速或停止
-let resistance: boolean = true;
-let studentNum = 0;
-let velocity:number;
-let currVelocity:number;
 
 // 对标题栏的按钮增加控制
 window.addEventListener("DOMContentLoaded", async () => {
@@ -53,11 +46,11 @@ window.addEventListener("DOMContentLoaded", async () => {
 
     // 标题栏初始化
     // ?.符号，先判断?前面的对象是否存在，若存在，再执行后面的方法
-    document.getElementById('titlebar-minimize')?.addEventListener('click', () => appWindow.minimize())
     document.getElementById('titlebar-close')?.addEventListener('click', () => appWindow.close())
+    document.getElementById('titlebar-minimize')?.addEventListener('click', () => appWindow.minimize())
 
-    let topped_btn = document.getElementById('titlebar-always-on-top')
-    topped_btn?.addEventListener('click', () => topped(topped_btn))
+    let top_btn = document.getElementById('titlebar-always-on-top')
+    top_btn?.addEventListener('click', () => topwindows(top_btn))
 
     // DOM的声明
     if (document.getElementById("btn") !== null) {
@@ -74,59 +67,26 @@ window.addEventListener("DOMContentLoaded", async () => {
     // “开始”按钮初始化
     const currStatus = ["停", "开始"]
 
+    // 音频初始化
+    const roll_audio = document.getElementById('audio1') as HTMLAudioElement;
+
     btn.addEventListener("click", function () {
         if (resistance) {
-            resistance = !resistance;
-
             // 音效
             roll_audio.currentTime = 0;
             roll_audio.play();
             // 动画
+            lastFrame = Date.now();
             roll_request_id = requestAnimationFrame(animate);
         }
         else {
-            resistance = !resistance;
-
             // 音效
             roll_audio.pause();
         }
+        resistance = !resistance;
         btn.innerText = currStatus[Number(resistance)]
     })
-
-    computeFPS();
 });
-// TODO
-// 音频初始化 maybe run before DOM loaded
-const roll_audio = document.getElementById('audio1') as HTMLAudioElement;
-const end_audio = document.getElementById('audio2') as HTMLAudioElement;
-function computeFPS(){
-    let fps: number;
-    // velocity change with FPS
-    let last = Date.now();
-    let ticks = 0;
-    //调用10次 requestAnimationFrame
-    function rafLoop() {
-        ticks += 1;
-        //10帧统计帧率
-        if (ticks >= 10) {
-            const now = Date.now();
-            const diff = now - last
-            fps = Math.round(1000 / (diff / ticks));
-            last = now
-            ticks = 0
-            velocity = 1200 / fps;
-            currVelocity = velocity;
-            console.log(fps);
-            ticks = 0;
-            cancelAnimationFrame(test_id);// 刷新帧率数值
-        }
-        else{
-            test_id = requestAnimationFrame(rafLoop);
-        }
-    }
-
-    let test_id = requestAnimationFrame(rafLoop);
-}
 
 function modifyName() {
     // 姓名板上姓名的切换
@@ -140,6 +100,8 @@ function modifyName() {
 }
 
 function animate() {
+    velocity = 1.25 * (Date.now() - lastFrame);
+    lastFrame = Date.now()
     deltaY += velocity;
     if (deltaY >= nameplate_height) {
         deltaY -= nameplate_height;
@@ -151,7 +113,7 @@ function animate() {
 
     // 下一个动画
     if (resistance) {
-        currVelocity = velocity;
+        currVelocityPercent = 1;
         btn.disabled = true
         roll_request_id = requestAnimationFrame(stopAnimate);
     }
@@ -166,11 +128,13 @@ function stopAnimate() {
     // 停止阈值
     const stopThreshold = 0.1;
 
+    velocity = 1.2 * (Date.now() - lastFrame);
+    lastFrame = Date.now()
     // 减速
-    currVelocity *= deceleration;
+    currVelocityPercent *= deceleration;
 
     // 更新 deltaY
-    deltaY += currVelocity;
+    deltaY += currVelocityPercent * velocity;
 
     // 确保 deltaY 始终为正，并在 0 到 nameplate_height 之间
     if (deltaY >= nameplate_height) {
@@ -184,7 +148,7 @@ function stopAnimate() {
     }
 
     // 如果速度足够小，停止动画
-    if (Math.abs(currVelocity) < stopThreshold) {
+    if (Math.abs(currVelocityPercent * velocity) < stopThreshold) {
         // 缓慢调整到最近的整数倍 nameplate_height
         let targetDelta = Math.round(deltaY / nameplate_height) * nameplate_height;
         // console.log(targetDelta)
@@ -193,17 +157,14 @@ function stopAnimate() {
         if (Math.abs(adjustmentSpeed) < 0.01) {
             // 最终对齐
             highlight_elem.style.animation = "highlightAnimation 0.3s 10";
-            end_audio.play();
             setTimeout(() => {
                 highlight_elem.style.removeProperty('animation')
                 btn.disabled = false
-            }, 3200)// 恰好为audio2的时长，不会音效重叠
+            }, 2000)// 禁用2秒
             deltaY = targetDelta;
             for (const e of nameplate_doms) {
                 e.style.setProperty("bottom", `${deltaY}px`);
             }
-            // 重新根据情况计算FPS
-            computeFPS();
             cancelAnimationFrame(roll_request_id);
         } else {
             // 继续微调

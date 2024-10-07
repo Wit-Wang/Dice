@@ -4,14 +4,13 @@
     <head>
         <meta charset="UTF-8">
         <title>Index</title>
-        <link rel="icon" href="data:image/ico;base64,aWNv">
+        <link rel="icon" href="/src/icon.ico">
         <link href="/src/styles.css" type="text/css" rel="stylesheet">
         <script type="module" src="/src/main.ts" defer></script>
     </head>
 
     <body>
         <div class="background"></div>
-        <!--svg from www.figma.com/design/QvPtbNgkOrTUgmzw3JQIoU/Element-Plus-Design-System---UI-Kit-(Community)-->
         <div data-tauri-drag-region class="titlebar">
             <div class="titlebar-button" id="titlebar-always-on-top">
                 <svg width="17" height="16" viewBox="0 0 17 16" fill="none" xmlns="http://www.w3.org/2000/svg"
@@ -37,17 +36,16 @@
             </div>
         </div>
         <div class="wrapper">
-                <div class="studentName">S1</div>
-                <div class="studentName">S2</div>
-                <div class="studentName">S3</div>
-                <div class="studentName">S4</div>
-                <button id="btn">开始</button>
-            </div>
+            <div class="studentName">S1</div>
+            <div class="studentName">S2</div>
+            <div class="studentName">S3</div>
+            <div class="studentName">S4</div>
             <div id="navigator"></div>
             <div id="highlight"></div>
+            <button id="btn">开始</button>
+        </div>
         </div>
         <audio id="audio1" src="./src/audios/audio1.mp3" hidden loop></audio>
-        <audio id="audio2" src="./src/audios/audio2.mp3" hidden></audio>
     </body>
 
 </html>
