@@ -154,17 +154,18 @@ function stopAnimate() {
         // console.log(targetDelta)
         let adjustmentSpeed = (targetDelta - deltaY) * 0.1;
 
-        if (Math.abs(adjustmentSpeed) < 0.01) {
+        if (Math.abs(adjustmentSpeed) < 0.005) {
             // 最终对齐
+            deltaY = targetDelta;
+            for (const e of nameplate_doms) {
+                e.style.setProperty("bottom", `${deltaY}px`);
+            }
+            // 动画
             highlight_elem.style.animation = "highlightAnimation 0.3s 10";
             setTimeout(() => {
                 highlight_elem.style.removeProperty('animation')
                 btn.disabled = false
             }, 2000)// 禁用2秒
-            deltaY = targetDelta;
-            for (const e of nameplate_doms) {
-                e.style.setProperty("bottom", `${deltaY}px`);
-            }
             cancelAnimationFrame(roll_request_id);
         } else {
             // 继续微调
