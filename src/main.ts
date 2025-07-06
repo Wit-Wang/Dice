@@ -2,6 +2,7 @@
 // import nameplate from "./components/name.vue";
 import { invoke } from "@tauri-apps/api/tauri";
 import { appWindow } from '@tauri-apps/api/window'
+import { readTextFile, writeTextFile, BaseDirectory, createDir, exists } from "@tauri-apps/api/fs";
 
 
 // 全局变量声明区域
@@ -12,7 +13,29 @@ let btn: HTMLButtonElement;
 let highlight_elem: HTMLElement;
 let deltaY = 0;
 const nameplate_height = 120;
-const students_name_list = ["刘一","陈二","张三","李四","王五","赵六","孙七","周八","吴九","郑十"];
+
+const STUDENT_LIST_FILE = "students.txt";
+let students_name_list: string[] = [];
+// 读取学生列表
+async function loadStudentList() {
+    try {
+        const content = await readTextFile(STUDENT_LIST_FILE, { dir: BaseDirectory.App });
+        students_name_list = content.split(/,|，|\n/).map(s => s.trim()).filter(s => s.length > 0);
+    } catch (e) {
+        // 文件不存在时用默认
+        students_name_list = ["张三", "李四", "王五"];
+    }
+}
+// 保存学生列表
+async function saveStudentList() {
+    // 确保 App 数据目录存在
+    const appDataDirExists = await exists('', { dir: BaseDirectory.App });
+    if (!appDataDirExists) {
+        await createDir('', { dir: BaseDirectory.App, recursive: true });
+    }
+    await writeTextFile(STUDENT_LIST_FILE, students_name_list.join('\n'), { dir: BaseDirectory.App });
+}
+
 // resistance为阻力状态: false为无阻力自由旋转，true为有阻力减速或停止
 let resistance: boolean = true;
 let studentNum = 0;
@@ -41,6 +64,9 @@ function disableContextMenu() {
 
 // 对标题栏的按钮增加控制
 window.addEventListener("DOMContentLoaded", async () => {
+    // 加载学生列表
+    await loadStudentList();
+
     // 窗口初始化，屏蔽右键
     disableContextMenu();
 
@@ -49,8 +75,41 @@ window.addEventListener("DOMContentLoaded", async () => {
     document.getElementById('titlebar-close')?.addEventListener('click', () => appWindow.close())
     document.getElementById('titlebar-minimize')?.addEventListener('click', () => appWindow.minimize())
 
-    let top_btn = document.getElementById('titlebar-always-on-top')
+    const top_btn = document.getElementById('titlebar-always-on-top')
     top_btn?.addEventListener('click', () => topwindows(top_btn))
+
+    const settingBtn = document.getElementById("setting");
+    settingBtn?.addEventListener("click", () => {
+        const mask = document.getElementById("custom-prompt-mask")!;
+        const input = document.getElementById("custom-prompt-input") as HTMLInputElement;
+        const okBtn = document.getElementById("custom-prompt-ok")!;
+        const cancelBtn = document.getElementById("custom-prompt-cancel")!;
+        input.value = students_name_list.join(",");
+        mask.style.display = "block";
+        input.focus();
+
+        function closePrompt() {
+            mask.style.display = "none";
+            okBtn.removeEventListener("click", onOk);
+            cancelBtn.removeEventListener("click", onCancel);
+        }
+        function onOk() {
+            students_name_list = input.value.split(/,|，|\n/).map(s => s.trim()).filter(s => s.length > 0);
+            studentNum = 0;
+            modifyName();
+            saveStudentList();
+            closePrompt();
+        }
+        function onCancel() {
+            closePrompt();
+        }
+        okBtn.addEventListener("click", onOk);
+        cancelBtn.addEventListener("click", onCancel);
+        input.onkeydown = (e) => {
+            if (e.key === "Enter") onOk();
+            if (e.key === "Escape") onCancel();
+        };
+    });
 
     // DOM的声明
     if (document.getElementById("btn") !== null) {

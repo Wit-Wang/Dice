@@ -214,7 +214,122 @@ body {
     background: rgb(97, 160, 255);
 }
 
+#btn:active {
+    background: rgb(64, 132, 200);
+    box-shadow: 0 0 4px 4px rgba(52, 123, 182, 0.6);
+}
+
 #btn:disabled {
     color: #ccc;
     background: rgb(64, 132, 200);
+}
+
+#setting {
+    position: fixed;
+    right: 24px;
+    bottom: 24px;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: rgba(76, 166, 255, 0.95);
+    color: #fff;
+    font-size: 22px;
+    font-family: 'smiley-sans';
+    border: none;
+    box-shadow: 0 0 8px 2px rgba(52, 123, 182, 0.4);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 2000;
+    cursor: pointer;
+    transition: background 0.2s, box-shadow 0.2s;
+}
+
+#setting:hover {
+    background: rgb(97, 160, 255);
+    box-shadow: 0 0 12px 4px rgba(52, 123, 182, 0.6);
+}
+
+#setting:active {
+    background: rgb(64, 132, 200);
+    box-shadow: 0 0 8px 2px rgba(52, 123, 182, 0.4);
+}
+
+/* 自定义弹窗样式 */
+#custom-prompt-mask {
+    display: none;
+    position: fixed;
+    z-index: 3000;
+    left: 0;
+    top: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0, 0, 0, 0.25);
+}
+
+#custom-prompt {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 0 16px #0002;
+    padding: 32px 24px;
+    min-width: 340px;
+    max-width: 90vw;
+}
+
+.custom-prompt-title {
+    font-size: 18px;
+    margin-bottom: 16px;
+}
+
+#custom-prompt-input {
+    width: 96%;
+    min-width: 260px;
+    max-width: 480px;
+    font-size: 16px;
+    padding: 12px 8px;
+    height: 140px;
+    border-radius: 6px;
+    border: 1px solid #ccc;
+    margin-bottom: 18px;
+    box-sizing: border-box;
+    resize: none;
+    line-height: 1.6;
+    text-align: left;
+}
+
+.custom-prompt-actions {
+    text-align: right;
+}
+
+#custom-prompt-cancel,
+#custom-prompt-ok {
+    padding: 6px 18px;
+    border-radius: 6px;
+    border: none;
+    font-size: 15px;
+    margin-left: 8px;
+}
+
+#custom-prompt-cancel {
+    background: #eee;
+    color: #333;
+}
+
+#custom-prompt-ok {
+    background: #4ca6ff;
+    color: #fff;
+}
+
+#custom-prompt-cancel:hover {
+    background: #ddd;
+    color: #111;
+}
+
+#custom-prompt-ok:hover {
+    background: #238cff;
+    color: #fff;
 }

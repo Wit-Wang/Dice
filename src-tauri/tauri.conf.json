@@ -8,7 +8,7 @@
     },
     "package": {
         "productName": "dice",
-        "version": "1.0.0"
+        "version": "1.0.1"
     },
     "tauri": {
         "allowlist": {
@@ -27,6 +27,15 @@
                 "unmaximize": true,
                 "unminimize": true,
                 "startDragging": true
+            },
+            "fs": {
+                "readFile": true,
+                "writeFile": true,
+                "createDir": true,
+                "exists": true,
+                "scope": [
+                    "$APPDATA/dice.Wit-Wang/**"
+                ]
             }
         },
         "windows": [
@@ -52,7 +61,7 @@
             },
             "active": true,
             "targets": "all",
-            "identifier": "W.Wit-Wang",
+            "identifier": "dice.Wit-Wang",
             "icon": [
                 "icons/32x32.png",
                 "icons/128x128.png",

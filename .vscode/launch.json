@@ -9,6 +9,13 @@
             "name": "Run tauri",
             "request": "launch",
             "type": "node-terminal"
+        },
+        {
+            "command": "npm run tauri build --target x86_64-pc-windows-msvc --bundles nsis",
+            "name": "tauri build",
+            "request": "launch",
+            "type": "node-terminal",
+            "autoAttachChildProcesses": false
         }
     ]
 }
