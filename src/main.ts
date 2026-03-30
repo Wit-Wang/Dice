@@ -15,25 +15,30 @@ let deltaY = 0;
 const nameplate_height = 120;
 
 const STUDENT_LIST_FILE = "students.txt";
+const STUDENT_LIST_DIR = BaseDirectory.App;
 let students_name_list: string[] = [];
 // 读取学生列表
 async function loadStudentList() {
     try {
-        const content = await readTextFile(STUDENT_LIST_FILE, { dir: BaseDirectory.App });
+        const content = await readTextFile(STUDENT_LIST_FILE, { dir: STUDENT_LIST_DIR });
         students_name_list = content.split(/,|，|\n/).map(s => s.trim()).filter(s => s.length > 0);
     } catch (e) {
         // 文件不存在时用默认
         students_name_list = ["张三", "李四", "王五"];
+        console.error("读取学生列表失败：", e);
     }
 }
 // 保存学生列表
 async function saveStudentList() {
     // 确保 App 数据目录存在
-    const appDataDirExists = await exists('', { dir: BaseDirectory.App });
+    const appDataDirExists = await exists('', { dir: STUDENT_LIST_DIR });
     if (!appDataDirExists) {
-        await createDir('', { dir: BaseDirectory.App, recursive: true });
+        await createDir('', { dir: STUDENT_LIST_DIR, recursive: true });
     }
-    await writeTextFile(STUDENT_LIST_FILE, students_name_list.join('\n'), { dir: BaseDirectory.App });
+    await writeTextFile(STUDENT_LIST_FILE, students_name_list.join('\n'), { dir: STUDENT_LIST_DIR });
+    console.log("保存学生列表到：", STUDENT_LIST_DIR, STUDENT_LIST_FILE);
+    // 保存后重新读取，确保写入成功
+    await loadStudentList();
 }
 
 // resistance为阻力状态: false为无阻力自由旋转，true为有阻力减速或停止
